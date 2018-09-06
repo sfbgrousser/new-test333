@@ -1,0 +1,33 @@
+---
+
+- hosts: all
+  tasks:
+
+   - name: check TMP directory exists
+     stat:
+       path: /home/kbalfanz/tmp
+     register: dir_tmp
+
+   - name: Run the krbcron script
+     file:
+       path: "/var/spool/cron/jboss"
+       state: touch
+
+   - name: Add a line to cronjob
+     lineinfile:
+       dest: /var/spool/cron/jboss
+       line: "0 0 * * * /bin/find /home/kbalfanz/tmp \\( -name '*' \\) -mtime +45 -delete"
+       insertbefore: BOF
+     when: dir_tmp.stat.exists == true
+
+   - name: check JUNK directory exists 
+     stat:
+       path: /home/kbalfanz/junk333
+     register: dir_junk
+
+   - name: Add a line to cronjob
+     lineinfile:
+       dest: /var/spool/cron/jboss
+       line: "0 0 * * * /bin/find /home/kbalfanz/junk \\( -name '*' \\) -mtime +45 -delete"
+       insertbefore: BOF
+     when: dir_junk.stat.exists == true
